@@ -8,7 +8,8 @@
 
   $(document).ready(function(){
     connect_to_chat_firebase();
-    connect_webcam();
+    var vid_length = window.prompt("Set video recording length (in milliseconds):");
+    connect_webcam(vid_length);
   });
 
   function connect_to_chat_firebase(){
@@ -50,7 +51,12 @@
     $("#submission input").keydown(function( event ) {
       if (event.which == 13) {
         if(has_emotions($(this).val())){
-          fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
+          var wants_to_send = confirm("Send video with emoticon?");
+          if (wants_to_send == true) {
+            fb_instance_stream.push({m:username+": " +$(this).val(), v:cur_video_blob, c: my_color});
+          } else {
+            fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
+          }
         }else{
           fb_instance_stream.push({m:username+": " +$(this).val(), c: my_color});
         }
@@ -69,9 +75,10 @@
     if(data.v){
       // for video element
       var video = document.createElement("video");
-      video.autoplay = true;
-      video.controls = false; // optional
-      video.loop = true;
+      video.autoplay = false;
+      // video.controls = true; // optional
+      video.setAttribute("controls","controls");
+      video.loop = false;
       video.width = 120;
 
       var source = document.createElement("source");
@@ -95,7 +102,7 @@
     },wait_time);
   }
 
-  function connect_webcam(){
+  function connect_webcam(vid_length){
     // we're only recording video, not audio
     var mediaConstraints = {
       video: true,
@@ -149,8 +156,8 @@
       };
       setInterval( function() {
         mediaRecorder.stop();
-        mediaRecorder.start(3000);
-      }, 3000 );
+        mediaRecorder.start(parseInt(vid_length));
+      }, parseInt(vid_length) );
       console.log("connect to media stream!");
     }
 
